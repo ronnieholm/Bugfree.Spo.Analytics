@@ -168,11 +168,13 @@ file structure of the App Service instance is displayed.
 4. Deploy the backend to the Azure App Service by following these
 steps.
 
-   5.1. Delete `/site/wwwroot/hostingstart.html` 5.2. Copy the content
-   of `src/Bugfree.Spo.Analytics.Cli/bin/Debug` to `/site/wwwroot`
-   5.3. Copy `src/Bugfree.Spo.Analytics.Cli/Web.config` to `/site/wwwroot`
-   5.4. Copy `src/Bugfree.Spo.Analytics.Cli/public` to
-   ´/site/wwwroot/public`.
+   4.1. Delete `/site/wwwroot/hostingstart.html`.
+   
+   4.2. Copy the content of `src/Bugfree.Spo.Analytics.Cli/bin/Debug` to `/site/wwwroot`.
+   
+   4.3. Copy `src/Bugfree.Spo.Analytics.Cli/Web.config` to `/site/wwwroot`.
+   
+   4.4. Copy `src/Bugfree.Spo.Analytics.Cli/public` to `/site/wwwroot/public`.
 
 5. Inside the Azure portal, navigate to Application Insights and the
 name of the App Service (an Application Insights instance is
@@ -191,7 +193,7 @@ connection string for the SQL Azure database created
 earlier. Similarly, add the *ApplicationInsightsInstrumentationKey*
 and set it to the value from Step 2.
 
-### Registration/unregistration
+### Visitor registration and unregistration
 
 Open a command prompt and change directory to
 `src/Bugfree.Spo.Analytics.Cli/bin/debug`. `Bugfree.Spo.Analytics.Cli.exe`
@@ -232,11 +234,11 @@ help:
       Enable visitor registration on a single site collections:
 
       .\Bugfree.Spo.Analytics.Cli
-	--register-site-collection
-	  rh@bugfree.onmicrosoft.com
-	  secretPassword
-	  https://bugfree.sharepoint.com/sites/siteCollection
-	  https://bugfreespoanalytics.azurewebsites.net
+        --register-site-collection
+          rh@bugfree.onmicrosoft.com
+          secretPassword
+          https://bugfree.sharepoint.com/sites/siteCollection
+          https://bugfreespoanalytics.azurewebsites.net
 
       (Command outputs URLs of site collections as it attempts to enable
        visitor registration. Errors, such as no access, are displayed as well.)
@@ -244,10 +246,10 @@ help:
       Disable visitor registration on all site collections.
 
       .\Bugfree.Spo.Analytics.Cli
-	--unregister-site-collections
-	  rh@bugfree.onmicrosoft.com
-	  secretPassword
-	  bugfree
+        --unregister-site-collections
+          rh@bugfree.onmicrosoft.com
+          secretPassword
+          bugfree
 
 ## Supported platforms
 
