@@ -1,4 +1,4 @@
-# Bugfree.Spo.Analytic
+# Bugfree.Spo.Analytics
 
 Bugfree.Spo.Analytics adds to SharePoint non-invasive logging of page
 visits. The solution is made up of JavaScript that gets added to every
@@ -124,7 +124,7 @@ respond, running other JavaScript code in the meantime.
 
 On the SQL Azure database side, the 10k-15k daily visits on a
 production instance, running in the [Standard: S0 pricing
-tier]((https://azure.microsoft.com/sv-se/documentation/articles/sql-database-service-tiers),
+tier](https://azure.microsoft.com/sv-se/documentation/articles/sql-database-service-tiers),
 the SQL Azure database uses below 1% of its Database Throughput Units
 (Azure's aggregated measure of CPU, memory, reads, and writes). A
 similar low measure applies to the Azure Service.
@@ -133,8 +133,8 @@ similar low measure applies to the Azure Service.
 
 Execute the build.ps1 script within the repository root folder. For
 use only during compilation, a LocalDB database is created in the
-src\Bugfree.Spo.Analytics.Cli folder. Output from the compilation is
-located in src\Bugfree.Spo.Analytics.Cli\bin\debug.
+`src\Bugfree.Spo.Analytics.Cli` folder. Output from the compilation is
+located in `src\Bugfree.Spo.Analytics.Cli\bin\debug`.
 
 ## Installation
 
@@ -168,11 +168,11 @@ file structure of the App Service instance is displayed.
 4. Deploy the backend to the Azure App Service by following these
 steps.
 
-   5.1. Delete "/site/wwwroot/hostingstart.html"   
-   5.2. Copy the content of src/Bugfree.Spo.Analytics.Cli/bin/Debug into
-        /site/wwwroot
-   5.3. Copy src/Bugfree.Spo.Analytics.Cli/Web.config to /site/wwwroot   
-   5.4. Copy src/Bugfree.Spo.Analytics.Cli/public to /site/wwwroot/public
+   5.1. Delete `/site/wwwroot/hostingstart.html` 5.2. Copy the content
+   of `src/Bugfree.Spo.Analytics.Cli/bin/Debug` to `/site/wwwroot`
+   5.3. Copy `src/Bugfree.Spo.Analytics.Cli/Web.config` to `/site/wwwroot`
+   5.4. Copy `src/Bugfree.Spo.Analytics.Cli/public` to
+   ´/site/wwwroot/public`.
 
 5. Inside the Azure portal, navigate to Application Insights and the
 name of the App Service (an Application Insights instance is
@@ -194,12 +194,12 @@ and set it to the value from Step 2.
 ### Registration/unregistration
 
 Open a command prompt and change directory to
-src/Bugfree.Spo.Analytics.Cli/bin/debug. Bugfree.Spo.Analytics.Cli.exe
+`src/Bugfree.Spo.Analytics.Cli/bin/debug`. `Bugfree.Spo.Analytics.Cli.exe`
 contains both a self-hosting web server and functionality for
 registration/unregistration of the JavaScript User Custom Action
 within a site collection.
 
-Running Bugfree.Spo.Analytics.Cli.exe --help provides the following
+Running `Bugfree.Spo.Analytics.Cli.exe --help` provides the following
 help:
 
     --server <port> <staticFilesLocation>
