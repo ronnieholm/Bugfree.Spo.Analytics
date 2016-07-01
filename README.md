@@ -16,8 +16,8 @@ tracking.
 
 To enable visitor tracking within a site collection, the JavaScript
 component must be enabled for it. This is done non-invasively --
-without modifying the master page -- by registering a (JavaScript
-file)[./src/Bugfree.Spo.Analytics.Cli/public/collector.js] with the
+without modifying the master page -- by registering a [JavaScript
+file](./src/Bugfree.Spo.Analytics.Cli/public/collector.js) with the
 site collection's User Custom Actions. SharePoint then takes care to
 include the JavaScript reference in every page within the site
 collection.
@@ -49,7 +49,7 @@ following browser events:
     Load.
 
 For each visit the following
-(metadata)[./src/Bugfree.Spo.Analytics.Cli/Schema.sql] is recorded:
+[metadata](./src/Bugfree.Spo.Analytics.Cli/Schema.sql) is recorded:
 
   - **Id**: a monotonically increasing integer identifying the
     visit. It's the primary key of the row added to the database table
@@ -147,7 +147,7 @@ deployment is also possible.
 ### SQL Azure database
 
 Create a empty MS SQL Azure database and apply the
-(schema)[./src/Bugfree.Spo.Analytics.Cli/Schema.sql] to it.
+[schema](./src/Bugfree.Spo.Analytics.Cli/Schema.sql) to it.
 
 ### Web application
 
