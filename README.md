@@ -1,12 +1,13 @@
 # Bugfree.Spo.Analytics
 
-Bugfree.Spo.Analytics adds non-invasive logging of page visits to
-SharePoint. By injecting JavaScript into every page, the solutions
-collects metadata about each visit and sends it to a web service which
-processes and records it to a MS SQL Server database. Soon a frontend
-with a few dashboards and simple query functionality is added as
-well. But the purpose of the solutions remains on recording
-visits. Separate tools already do querying and graphing well.
+Bugfree.Spo.Analytics adds non-invasive logging of page visits in
+SharePoint to MS SQL Server. By injecting JavaScript into every page,
+the solutions collects metadata about each visit and sends it to a web
+service which processes and records it to a MS SQL Server
+database. Soon a frontend with a few dashboards and simple query
+functionality is added as well. But the purpose of the solutions
+remains on recording visits. Separate tools already do querying and
+graphing well.
 
 Because visits are tracked client-side using JavaScript,
 Bugfree.Spo.Analytics isn't intended as an auditing tool. Rather, its
