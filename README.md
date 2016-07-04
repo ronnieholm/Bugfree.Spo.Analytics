@@ -1,148 +1,152 @@
 # Bugfree.Spo.Analytics
 
-Bugfree.Spo.Analytics adds to SharePoint non-invasive logging of page
-visits. The solution is made up of JavaScript that gets added to every
-page to collect information about the visit. The information is then
-sent to a web service to be recorded in a MS SQL Server database. In
-the near future, a frontend with dashboard and custom querying
-functionality will be included as well.
+Bugfree.Spo.Analytics adds non-invasive logging of page visits to
+SharePoint. By injecting JavaScript into every page, the solutions
+collects metadata about each visit and sends it to a web service which
+processes and records it to a MS SQL Server database. Soon a frontend
+with a few dashboards and simple query functionality is added as
+well. But the purpose of the solutions remains on recording
+visits. Separate tools already do querying and graphing well.
 
-Because Bugfree.Spo.Analytics tracks visits through JavaScript, it's
-intended for collecting overall visitor statistics and not for
-auditing. In principle, it's be possible for a user to disable the
-tracking.
+Because visits are tracked client-side using JavaScript,
+Bugfree.Spo.Analytics isn't intended as an auditing tool. Rather, its
+purpose is to gather aggregated visitor statistics and answer
+questions such as how many users visited a page, a web, or an entire
+site collection over a period of time.
 
 ## How it works
 
-To enable visitor tracking within a site collection, the JavaScript
-component must be enabled for it. This is done non-invasively --
-without modifying the master page -- by registering a [JavaScript
-file](./src/Bugfree.Spo.Analytics.Cli/public/collector.js) with the
-site collection's User Custom Actions. SharePoint then takes care to
-include the JavaScript reference in every page within the site
-collection.
+To enable visitor tracking within a site collection, a tool is
+provided to register the JavaScript client component with the site
+collection. Registration involved adding [JavaScript
+file](./src/Bugfree.Spo.Analytics.Cli/public/collector.js) to the site
+collection's User Custom Actions, and as such doesn't modify the
+master page. SharePoint then takes care to include the JavaScript
+reference in every page within the site collection.
 
-The JavaScript component collects information by hooking into the
-following browser events:
+The JavaScript client component collects information by hooking into
+the following browser events:
 
-  - [On
+  - [Document
     Ready](https://learn.jquery.com/using-jquery-core/document-ready)
-    which fires when the DOM is fully loaded and JavaScript ready to
-    be executed. At this stage, external page dependencies, such as
-    CSS, images, and remaining JavaScript files, are to be downloaded.
+    which fires when the DOM is loaded and the browser is ready to
+    execute JavaScript. At this stage, external page dependencies,
+    such as CSS, images, and remaining JavaScript files, are yet to be
+    downloaded.
 
-  - [On Load](https://api.jquery.com/load-event) which fires when all
-    page dependencies have finished loading. Hooking into both On
-    Ready and On Load enables measuring actual page load time as
-    experienced by the user. On Load, however, doesn't always fire.
-    Download of external dependencies may hang due to client, server,
-    or network issues or the user navigating away from the page before
-    all dependencies are loaded.
+  - [Load](https://api.jquery.com/load-event) which fires when all
+    page dependencies have finished downloading. Hooking into both
+    Document Ready and Load enables measuring page load time as
+    experienced by the user. But Load doesn't always fire.  Download
+    of external dependencies may hang due to client, server, or
+    network issues or because the user navigates away from the page
+    before the browser completes download all dependencies.
 
-    If a missing dependency is non-essential to the user experience,
-    the user may not notice that a dependency is missing. But it's
-    reflected in the Page load time by it becoming very large or
-    missing altogether. In most cases, On Load eventually fires, but
-    it may take minutes and is likely the result of the browser's
-    internal garbage collection. Likely because the browser cannot
-    fire On Unload before On Load, and hence artificially triggers On
-    Load.
+    In case a dependency not essential to the user experience is
+    missing, the user may not notice it. But page load time becomes
+    large or is missing altogether. In most cases, Load fires as
+    expected, but sometimes it takes minutes. A page load time this
+    long is (probably) due to the browser's garbage collector. The
+    browser shouldn't/can't fire Unload before Load as that would
+    violate W3C event ordering, and artificially fires Load.
 
-For each visit the following
-[metadata](./src/Bugfree.Spo.Analytics.Cli/Schema.sql) is recorded:
+## Visit metadata
+
+For each visit, the client-side component records the following
+[metadata](./src/Bugfree.Spo.Analytics.Cli/Schema.sql):
 
   - **Id**: a monotonically increasing integer identifying the
-    visit. It's the primary key of the row added to the database table
-    as a result of the visit.
+    visit. It's the primary key of the row added to the Visits
+    database table.
 
-  - **CorrelationId**: a globally unique identifying for the
-    visit. It's used to correlate On Ready and On Load messages for
-    the page visit. Having both Id and CorrelationId may seem
+  - **CorrelationId**: a globally unique identifier for the visit,
+    used to correlate messages generated by Document Ready and Load
+    events. At first sight, having both Id and CorrelationId may seem
     redundant, but whereas Id is server-side, database-generated,
     CorrelationId is client-side generated. Only the client has the
-    available information to determine which On Ready and On Load
-    events go together.
+    knowledge to correlate Document Ready and Load events.
 
-  - **Timestamp**: the UTC time of the arrival of the first message on
-    the server. The first message will almost always be On Ready. Time
-    isn't updated when another message, such as On Load, arrives.
+  - **Timestamp**: a UTC time at which the first message with a unique
+    CorrelationId arrived at the server. The first message will almost
+    always be Document Ready. Timestamp isn't updated when another
+    message, such as Load, arrives.
 
-  - **LoginName**: the [identity claims encoding
-    format](http://social.technet.microsoft.com/wiki/contents/articles/13921.sharepoint-2013-claims-encoding-also-valuable-for-sharepoint-2010.aspx)
-    of the user's login name, e.g.,
-    i:0#.f|membership|rh@bugfree.onmicrosoft.com. SharePoint may be
-    configured to use multiple claims providers in which case
-    rh@bugfree.onmicrosoft.com wouldn't be a unique username.
+  - **LoginName**: a user's login name in [identity claims encoding
+    format](http://social.technet.microsoft.com/wiki/contents/articles/13921.sharepoint-2013-claims-encoding-also-valuable-for-sharepoint-2010.aspx),
+    e.g., `i:0#.f|membership|rh@bugfree.onmicrosoft.com`. SharePoint
+    may have multiple claims providers configured in which case
+    rh@bugfree.onmicrosoft.com wouldn't be unique.
 
-  - **Url**: the full Url including query string parameters. It allows
-    subsequent queries to determine exactly where the user is inside
-    the site collection. Browsing document libraries, for instances,
-    the position within its folder hierarchy is part of the query
-    string.
+  - **Url**: a Url including query string parameters to ensure any
+    query have access to contextual metadata. For instance, browsing
+    document libraries, the position within the folder hierarchy is
+    part of the query string.
 
-  - **PageLoadTime**: the elapsed time in milliseconds between the
-    triggering of On Ready and On Load as measured by the client. An
-    unreasonably large number indicates delayed triggering of On Load
-    (as described above) and a null value that On Load hasn't yet, and
-    maybe never will, be trigger for the visit.
+  - **PageLoadTime**: an elapsed time in milliseconds between the
+    triggering of Document Ready and Load events as measured by the
+    client. A large number indicates delayed triggering of Load (as
+    described above) and a null value that Load hasn't yet, and maybe
+    never will, trigger for the visit.
 
-  - **IP**: the IP address of the client as observed by the server.
+  - **IP**: an IP address of the client as observed by the server.
     JavaScript doesn't provide a way to access the client's IP
     address. The Azure App Service, hosted behind a load
-    balancer/reverse proxy, reads the client's IP from the
-    x-forwarded-by request header added by the Azure infrastructure.
+    balancer/reverse proxy, is able to determine the client's IP from
+    the `x-forwarded-by` request header added by the Azure
+    infrastructure.
 
-  - **UserAgent**: the string added to the request header by the
-    browser. Including the user agent provides a rough metric of which
-    browser versions and operating systems clients use to access the
+  - **UserAgent**: a string added to the request header by the
+    browser. Including the user agent provides a rough measure of
+    which browser versions and operating systems clients use to access
     pages.
 
-In practice, the potential metadata to record about each visit is open
-ended. JavaScript running on each page may collect metadata by calling
-any method in the browser's API and by making JSOM and REST requests
-as the authenticated user.
+In practice, the potential set of metadata to record for each visit is
+open ended. The JavaScript running on each page may collect additional
+metadata by calling any method in the browser's API or by making JSOM
+and REST calls. The JavaScript is already running in a user
+authenticated context.
 
 ## Performance
 
 As clients post messages to the server, the server doesn't immediately
-propagate those to MS SQL Server. Instead, the only immediate
-server-side processing associated with a request is adding the message
+propagate those to MS SQL Server. The only immediate server-side
+processing associated with a request is adding the containing message
 to an in-process queue. When the queue reaches a certain length
-(currently five messages), a background thread transfors the messages
-to visits and flushes those to MS SQL server.
+(currently five messages), a background thread converts the messages
+into visits and flushes those to MS SQL server.
 
-The queuing-based architecture enables the server to process a large
-number of requests without a noticeable performance
-degradation. Responding quickly to client request is essential as we
-don't want to hold back page loading.
+Queuing messages enables the server to handle a large number of
+requests without clients noticing a performance degradation. Quickly
+responding to client requests is paramount as we're tying up a browser
+connection.
 
-Application Insights reports server-side processing time per request
-as averaging around 5 ms over a 30 days day and 750k requests. On the
+Application Insights reports average server-side processing time per
+request to be around 5 ms over a 30 days day and 750k requests. On the
 client, Chrome developer tools clocks a call to the server at 30-40 ms
 with most of the time spent asynchronously waiting for the server to
-respond, running other JavaScript code in the meantime.
+respond.
 
-On the SQL Azure database side, the 10k-15k daily visits on a
-production instance, running in the [Standard: S0 pricing
+The SQL Azure database instance running in the [Standard: S0 pricing
 tier](https://azure.microsoft.com/sv-se/documentation/articles/sql-database-service-tiers),
-the SQL Azure database uses below 1% of its Database Throughput Units
-(Azure's aggregated measure of CPU, memory, reads, and writes). A
-similar low measure applies to the Azure Service.
+records 10k-15k daily visits per day using less than 1% of its
+Database Throughput Units (Azure's aggregated measure of CPU, memory,
+reads, and writes). A similar low measure applies to the Azure
+Service.
 
 ## Compilation
 
-Execute the build.ps1 script within the repository root folder. For
-use only during compilation, a LocalDB database is created in the
+Execute the build.ps1 script within the repository's root folder. For
+use during compilation only, a LocalDB database is created in the
 `src\Bugfree.Spo.Analytics.Cli` folder. Output from the compilation is
 located in `src\Bugfree.Spo.Analytics.Cli\bin\debug`.
 
 ## Installation
 
 Bugfree.Spo.Analytics consists of a SQL Azure database, a web
-application, and a registration tool. For each part, separate setup
-instructions are provided below. The steps below assumes
-Bugfree.Spo.Analytics is deployed to Azure, but regular server
-deployment is also possible.
+application, and a management tool. For each part, separate setup
+instructions are provided below. The steps assume
+Bugfree.Spo.Analytics is deployed to Azure, but on-premise deployment
+is supposed too.
 
 ### SQL Azure database
 
@@ -157,10 +161,10 @@ prefix to BugfreeSpoAnalytics.
 
 2. For the new App Service, under Settings select Deployment
 Credentials and add a user name and password for FTP deployment. This
-step enables later xcopy deployment of the compiler output to the App
+step enables xcopy deployment of the compiler output to the App
 Service.
 
-3. For the new App Service, Under Settings, Properties make a note of
+3. For the new App Service, under Settings, Properties make a note of
 FTP/DEPLOYMENT USER and FTP HOST NAME. Pasting the FTP HOST NAME into
 Windows Explorer and entering the credentials setup in Step 2, the IIS
 file structure of the App Service instance is displayed.
@@ -182,27 +186,24 @@ automatically provisioned with the App Service). Under Properties,
 make a note of the INSTRUMENTATION KEY.
 
 6. Inside the Azure portal, setup app setting by going to Application
-Settings and in App Settings section enter
-*ApplicationInsightsInstrumentationKey* as the key and the value of
-INSTRUMENTATION KEY as the key.
+Settings and in App Settings section and
+enter *ApplicationInsightsInstrumentationKey* as key and
+INSTRUMENTATION KEY from Step 5 as the value.
 
 7. Inside the Azure portal, setup the connection string by going to
-Application Settings and in the Connection Strings section enter
-*BugfreeSpoAnalytics* as the name and set the value equal to the
-connection string for the SQL Azure database created
-earlier. Similarly, add the *ApplicationInsightsInstrumentationKey*
-and set it to the value from Step 2.
+Application Settings and in the Connection Strings section
+enter *BugfreeSpoAnalytics* as name and set value equal to the
+connection string for the SQL Azure database created earlier.
 
-### Visitor registration and unregistration
+### Management tool for visitor registration and unregistration
 
 Open a command prompt and change directory to
-`src/Bugfree.Spo.Analytics.Cli/bin/debug`. `Bugfree.Spo.Analytics.Cli.exe`
-contains both a self-hosting web server and functionality for
+`src/Bugfree.Spo.Analytics.Cli/bin/Debug`. `Bugfree.Spo.Analytics.Cli.exe`
+contains both a self-hosting web server, functionality for
 registration/unregistration of the JavaScript User Custom Action
 within a site collection.
 
-Running `Bugfree.Spo.Analytics.Cli.exe --help` provides the following
-help:
+Running `Bugfree.Spo.Analytics.Cli.exe --help` provides the following:
 
     --server <port> <staticFilesLocation>
 
