@@ -15,6 +15,10 @@ purpose is to gather aggregated visitor statistics and answer
 questions such as how many users visited a page, a web, or an entire
 site collection over a period of time.
 
+The idea of Bugfree.Spo.Analytics is akin to Google Analytics, except
+that Google Analytics doesn't record the login names of visitors and
+doesn't allow running custom queries on the collected metadata.
+
 ## How it works
 
 To enable visitor tracking within a site collection, a tool is
