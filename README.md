@@ -2,7 +2,7 @@
 
 Bugfree.Spo.Analytics adds non-invasive logging of page visits in
 SharePoint to MS SQL Server. By injecting JavaScript into every page,
-the solutions collects metadata about each visit and sends it to a web
+the solution collects metadata about each visit and sends it to a web
 service which processes and records it to a MS SQL Server
 database. Soon a frontend with a few dashboards and simple query
 functionality is added as well. But the purpose of the solutions
