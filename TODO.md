@@ -9,3 +9,5 @@
 - Add unique key to JavaScript collector and server configuration to prevent any client from injecting visits into the publicly avaiable server
 - Add --verify-site-collection option to CLI for feature symmetry with other options
 - Fix serving public files locally. Azure App Services relies on Environment.CurrentDirectory + staticFilesPath in Server.fs
+- Use Argu library for command-line parsing
+- Make binaries available for download on Github
