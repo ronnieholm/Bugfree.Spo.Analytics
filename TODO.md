@@ -11,3 +11,4 @@
 - Fix serving public files locally. Azure App Services relies on Environment.CurrentDirectory + staticFilesPath in Server.fs
 - Use Argu library for command-line parsing
 - Make binaries available for download on Github
+- Include https://github.com/OlegZee/Suave.OAuth for O365 authentication
