@@ -119,7 +119,7 @@ five messages), a background thread converts the messages into visits
 and flushes those to MS SQL server.
 
 Queuing messages enables the server to handle a large number of
-requests without clients experiencing a performance
+requests without clients experiencing any performance
 degradation. Quickly responding to client requests is paramount as
 we're tying up a browser connection.
 
