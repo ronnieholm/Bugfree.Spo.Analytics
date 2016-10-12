@@ -1,8 +1,9 @@
-﻿module Bugfree.Spo.Analytics.Cli.Main
+﻿module Bugfree.Spo.Analytics.Cli.Program
 
 // See also
 //   https://github.com/isaacabraham/fsharp-demonstrator
 //   https://github.com/fssnippets/fssnip-website
+//   http://eng.localytics.com/exploring-cli-best-practices
 
 open System
 open System.IO
@@ -13,8 +14,6 @@ let getConfig port =
     { defaultConfig with 
         bindings = [ HttpBinding.mk HTTP IPAddress.Loopback port ]        
         listenTimeout = TimeSpan.FromMilliseconds 2000. }
-
-let s = Configuration.getSettings()
 
 [<EntryPoint>]
 let main args =
@@ -65,7 +64,7 @@ let main args =
         printfn ""
         printfn "  Enable visitor registration on a single site collections:"
         printfn ""
-        printfn "  .\Bugfree.Spo.Analytics.Cli" 
+        printfn "  .\Bugfree.Spo.Analytics.Cli.exe" 
         printfn "    --register-site-collection" 
         printfn "      rh@bugfree.onmicrosoft.com"
         printfn "      secretPassword" 
@@ -77,7 +76,7 @@ let main args =
         printfn ""
         printfn "  Disable visitor registration on all site collections."
         printfn ""
-        printfn "  .\Bugfree.Spo.Analytics.Cli" 
+        printfn "  .\Bugfree.Spo.Analytics.Cli.exe" 
         printfn "    --unregister-site-collections"
         printfn "      rh@bugfree.onmicrosoft.com"
         printfn "      secretPassword"
@@ -85,7 +84,7 @@ let main args =
         printfn ""
         printfn "  Start self-hosted web server on port 8083 and serve public files:"
         printfn ""
-        printfn " .\Bugfree.Spo.Analytics.Cli --server 8083 ..\..\public"
+        printfn " .\Bugfree.Spo.Analytics.Cli.exe --server 8083 ..\..\public"
         printfn ""
     | ["--server"; port; staticFilesLocation] -> 
         let config = getConfig (uint16 port)

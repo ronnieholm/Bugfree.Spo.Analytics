@@ -69,7 +69,7 @@ let processOnReady (request: HttpRequest) =
         PageLoadTime = None
         IP = getXForwardedFor request
         UserAgent = getUserAgent request })
-    OK "OnReadyProcessed"
+    OK "processOnReady"
 
 let processOnLoad (request: HttpRequest) =
     let json = PostOnLoadJson.Parse(Encoding.UTF8.GetString(request.rawForm))
@@ -81,10 +81,10 @@ let processOnLoad (request: HttpRequest) =
         PageLoadTime = Some json.PageLoadTime
         IP = getXForwardedFor request
         UserAgent = getUserAgent request })
-    OK "OnLoadProcessed"
+    OK "processOnLoad"
 
 // Included for debugging purposes. Prints all request headers and server
-// side-side information related to the request. The WebPart comes in handy 
+// side-side information related to the request. This WebPart comes in handy 
 // when we're looking for a property but are unsure of its name. By dumping
 // the context, we can look for its value instead.
 let dumpContext: WebPart =
@@ -92,7 +92,7 @@ let dumpContext: WebPart =
         POST >=>
             fun ctx ->
                 printfn "%A" ctx
-                ctx |> OK "Context dumped"]
+                ctx |> OK "Context dumped" ]
 
 let allowCors : WebPart =
     choose [
@@ -103,7 +103,7 @@ let allowCors : WebPart =
                     setHeader "Access-Control-Allow-Headers" "content-type" >=>
                     OK "CORS approved")]
 
-let logger = Loggers.ConsoleWindowLogger LogLevel.Verbose    
+let logger = Loggers.ConsoleWindowLogger LogLevel.Verbose
 let app staticFilesPath : WebPart =
     let staticFileRoot = Path.GetFullPath(Environment.CurrentDirectory + staticFilesPath)
     printfn "staticFileRoot: %s" staticFileRoot

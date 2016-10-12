@@ -47,6 +47,6 @@ let withRequestTracking (webPart: WebPart) ctx =
     }
 
 do
-    let s = Configuration.getSettings()
+    let settings = Configuration.getSettings()
     TelemetryConfiguration.Active.TelemetryChannel.DeveloperMode <- Nullable true
-    TelemetryConfiguration.Active.InstrumentationKey <- s.ApplicationInsights.InstrumentationKey
+    TelemetryConfiguration.Active.InstrumentationKey <- settings.ApplicationInsights.InstrumentationKey
