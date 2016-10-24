@@ -197,6 +197,9 @@ Application Settings and in the Connection Strings section
 enter *BugfreeSpoAnalytics* as name and set value equal to the
 connection string for the SQL Azure database created earlier.
 
+8. Inside the Azure portal, enable CORS by going to CORS and adding * 
+(star) as allowed origins.
+
 ### Management tool for visitor registration and unregistration
 
 Open a command prompt and change directory to
