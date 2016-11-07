@@ -13,7 +13,7 @@ type VisitorAgentInfo =
 type ReportsInfo =
     { InCloudDomain: string
       OnPremiseDomain: string
-      InternalIPs: string[] }
+      CompanyPublicIPs: string[] }
 
 type Settings = 
     { DatabaseConnectionString: string
@@ -39,4 +39,4 @@ let getSettings() =
       Reports = 
         { InCloudDomain = getString "Reports.InCloudDomain"
           OnPremiseDomain = getString "Reports.OnPremiseDomain"
-          InternalIPs = getStringArray "Reports.InternalIPs" } }
+          CompanyPublicIPs = getStringArray "Reports.CompanyPublicIPs" } }

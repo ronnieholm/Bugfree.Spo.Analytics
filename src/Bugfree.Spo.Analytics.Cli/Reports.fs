@@ -81,7 +81,7 @@ module Repository =
                  from Visits v with (nolock), IPs i with (nolock)
                  where v.Timestamp >= @fromDate and v.Timestamp < @toDate
                  and i.IP in (%s)
-                 and v.IPId = i.Id" (reports.InternalIPs |> toInClauseList)
+                 and v.IPId = i.Id" (reports.CompanyPublicIPs |> toInClauseList)
 
         use connection = new SqlConnection(settings.DatabaseConnectionString)
         use command = new SqlCommand(sql, connection)
@@ -97,7 +97,7 @@ module Repository =
                  from Visits v with (nolock), IPs i with (nolock)
                  where v.Timestamp >= @fromDate and v.Timestamp < @toDate
                  and i.IP not in (%s)
-                 and v.IPId = i.Id" (reports.InternalIPs |> toInClauseList)
+                 and v.IPId = i.Id" (reports.CompanyPublicIPs |> toInClauseList)
 
         use connection = new SqlConnection(settings.DatabaseConnectionString)
         use command = new SqlCommand(sql, connection)
