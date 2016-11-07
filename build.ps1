@@ -45,7 +45,7 @@ $create_db_sql = @"
     USE [$db_name];
 "@
 
-$schema = [system.io.file]::ReadAllText("$($web_base)\schema.sql")
+$schema = [System.IO.File]::ReadAllText("$($web_base)\schema.sql")
 $create_db_sql = $create_db_sql + $schema
 $create_db_sql | Out-File $createdb
 &$sqlcmd -S "(localdb)\v11.0" -i $createdb

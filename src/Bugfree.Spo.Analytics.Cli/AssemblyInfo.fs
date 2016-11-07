@@ -6,7 +6,7 @@ open System.Reflection
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyProduct("Bugfree.Spo.Analytics.Cli")>]
 [<assembly: AssemblyCopyright("Copyright (c) 2016 Ronnie Holm <mail@bugfree.dk>")>]
-[<assembly: AssemblyVersion("1.0.0.0")>]
-[<assembly: AssemblyFileVersion("1.0.0.0")>]
+[<assembly: AssemblyVersion("1.1.0")>]
+[<assembly: AssemblyFileVersion("1.1.0")>]
 
 do ()

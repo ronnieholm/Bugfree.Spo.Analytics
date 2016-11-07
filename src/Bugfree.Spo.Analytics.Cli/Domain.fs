@@ -9,9 +9,6 @@ type Visit =
       LoginName: string
       Url: string
       PageLoadTime: int option
-
-      // When running in Azure using HttpPlatformHandler, IP is Some, otherwise None
-      IP: IPAddress option
-
+      IP: IPAddress
       // Some if client identified itself, otherwise None
       UserAgent: string option }

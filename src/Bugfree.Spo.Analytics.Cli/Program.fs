@@ -86,7 +86,7 @@ let main args =
         printfn ""
         printfn " .\Bugfree.Spo.Analytics.Cli.exe --server 8083 ..\..\public"
         printfn ""
-    | ["--server"; port; staticFilesLocation] -> 
+    | ["--server"; port; staticFilesLocation] ->         
         let config = getConfig (uint16 port)
         let appPart =  Bugfree.Spo.Analytics.Cli.Server.app (Path.Combine(staticFilesLocation, "public"))
         startWebServer config appPart

@@ -15,16 +15,30 @@ type Agent<'T> = MailboxProcessor<'T>
 
 type LoggerMessage =
     | Message of string
+    | Retrieve of AsyncReplyChannel<string array>
 
 // Strictly speaking, we don't need the logger agent anymore and could
 // print line directly. Earlier code contained multiple processing agents
 // running in parallel, each sending log message to the single logger event.
 let logger = Agent<LoggerMessage>.Start (fun inbox ->
+    let sizeOfCircularBuffer = 100
+    let circularLog = Array.create sizeOfCircularBuffer ""
+    let mutable logPosition = 0
+
     let rec messageLoop() = async {
         let! message = inbox.Receive()
         match message with
-        | Message m -> 
-            printfn "%s %s" (DateTime.Now.ToUniversalTime().ToString()) m
+        | Message m ->
+            let s = sprintf "%s %s" (DateTime.Now.ToUniversalTime().ToString()) m
+            printfn "%s" s
+            circularLog.[logPosition % sizeOfCircularBuffer] <- s
+            logPosition <- logPosition + 1
+            return! messageLoop()
+        | Retrieve channel ->
+            let entries = 
+                [|logPosition..(logPosition + sizeOfCircularBuffer - 1)|]              
+                |> Array.map (fun i -> sprintf "%s" circularLog.[i % sizeOfCircularBuffer])
+            channel.Reply entries
             return! messageLoop()
     }
     messageLoop())
@@ -47,6 +61,7 @@ let visitor = Agent<VisitorMessages>.Start (fun inbox ->
         | Visit visit ->
             let visits' = visit :: visits
             let length = visits' |> List.length
+            logger.Post (Message (sprintf "Queued message %d with CorrelationId %s" length (visit.CorrelationId.ToString())))
 
             if length >= (settings.VisitorAgent.CommitThreshold) then
                 logger.Post (Message (sprintf "About to persist %d messages" length))
@@ -61,7 +76,6 @@ let visitor = Agent<VisitorMessages>.Start (fun inbox ->
                     // agent queue length is still >= CommitThreshold.
                     return! messageLoop settings visits'
             else
-                logger.Post (Message (sprintf "Queued message %d with CorrelationId %s" length (visit.CorrelationId.ToString())))
                 return! messageLoop settings visits'
     }
     
