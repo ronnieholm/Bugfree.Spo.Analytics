@@ -210,11 +210,11 @@ Settings, App Settings and set the following keys:
         based on login name.
 
    7.3. *Reports.CompanyPublicIPs*: a comma-delimited list of public
-        IP addresses of your organization. Given that the web
-        application runs in Azure, traffic from both inside and
-        outside your organization originate from public IP
-        addresses. This settings allows the classification of traffic
-        based on origin.
+        IP addresses of your organization. For example "1.2.3.4,
+        5.6.7.8". Given that the web application runs in Azure,
+        traffic from both inside and outside your organization
+        originate from public IP addresses. This settings allows the
+        classification of traffic based on origin.
 
 8. Inside the Azure portal, setup the connection string by going to
 Application Settings and in the Connection Strings section
