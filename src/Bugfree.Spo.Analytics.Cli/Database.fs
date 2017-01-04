@@ -106,7 +106,7 @@ let getOrCreateSiteCollection (c: SqlConnection) (t: SqlTransaction) (siteCollec
         match m.Success with
         | true -> Some (m.Groups.["url"].Value)
         | false ->
-            // Does url match tenant site collection instead, e.g., https://<tenant>.sharepoint.com/default.aspx?
+            // Does url match tenant site collection instead, e.g., https://<tenant>.sharepoint.com/default.aspx
             if not (siteCollectionUrl.Contains("/sites/") || siteCollectionUrl.Contains("/teams/"))
             then
                 let re2 = Regex("^(?<url>https://.+?)/")

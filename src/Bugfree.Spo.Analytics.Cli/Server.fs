@@ -67,7 +67,7 @@ let getXForwardedFor (request: HttpRequest) =
         Some (IPAddress.Parse(ips.[0]))
     | Choice2Of2 _ -> None
 
-let processOnReady (request: HttpRequest) =
+let postOnReady (request: HttpRequest) =
     let json = PostOnReadyJson.Parse(Encoding.UTF8.GetString(request.rawForm))
     if callOriginatesFromSharePoint json.Url then
         Agents.visitor.Post (Visit {
@@ -82,7 +82,7 @@ let processOnReady (request: HttpRequest) =
     else
         OK "callNotOriginatesFromSharePoint"
 
-let processOnLoad (request: HttpRequest) =
+let postOnLoad (request: HttpRequest) =
     let json = PostOnLoadJson.Parse(Encoding.UTF8.GetString(request.rawForm))
     if callOriginatesFromSharePoint json.Url then
         Agents.visitor.Post (Visit {
@@ -102,7 +102,7 @@ let serializeToJson o =
     jsonSerializerSettings.ContractResolver <- new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
     Newtonsoft.Json.JsonConvert.SerializeObject(o, jsonSerializerSettings)    
 
-let processVisitorByVisitorCountInDateRange (request: HttpRequest) =
+let getVisitorByVisitorCountInDateRange (request: HttpRequest) =
     match request.queryParam "from" with
     | Choice1Of2 t -> 
         match request.queryParam "to" with
@@ -113,12 +113,12 @@ let processVisitorByVisitorCountInDateRange (request: HttpRequest) =
         | Choice2Of2 _ -> BAD_REQUEST "Missing to"
     | Choice2Of2 _ -> BAD_REQUEST "Missing from"
 
-let processInternalExternalIPOriginVisits (request: HttpRequest) =
+let getInternalExternalIPOriginVisits (request: HttpRequest) =
     Reports.generateInternalExternalIPOriginVisits (DateTime(2016, 5, 1)) (DateTime(2016, 11, 4))
     |> serializeToJson
     |> OK >=> Writers.setMimeType "application/json; charset=utf-8"
 
-let processLogRequest (request: HttpRequest) =
+let getLogRequest (request: HttpRequest) =
     (Agents.logger.PostAndReply LoggerMessage.Retrieve)
     |> Array.reduce (fun acc cur -> acc + "\r\n" + cur)
     |> OK >=> Writers.setMimeType "text/plain; charset=utf-8"
@@ -140,14 +140,15 @@ let app staticFilesPath : WebPart =
     printfn "staticFileRoot: %s" staticFileRoot
     choose [
         //dumpContext
-        POST >=> path "/api/collectOnReady" >=> request processOnReady
-        POST >=> path "/api/collectOnLoad" >=> request processOnLoad
+        POST >=> path "/api/collectOnReady" >=> request postOnReady
+        POST >=> path "/api/collectOnLoad" >=> request postOnLoad
         path "/" >=> browseFile staticFileRoot "index.html"
-        GET >=> path "/api/visitorByVisitorCountInDateRange" >=> request processVisitorByVisitorCountInDateRange
-        GET >=> path "/api/internalExternalIPOriginVisitsInDateRange" >=> request processInternalExternalIPOriginVisits
-        path "/log" >=> request processLogRequest
+        GET >=> path "/api/visitorByVisitorCountInDateRange" >=> request getVisitorByVisitorCountInDateRange
+        GET >=> path "/api/internalExternalIPOriginVisitsInDateRange" >=> request getInternalExternalIPOriginVisits
+        path "/log" >=> request getLogRequest
         browse staticFileRoot
         RequestErrors.NOT_FOUND "404"
+        // pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
     ] 
     >=> log logger logFormat
     |> ApplicationInsights.withRequestTracking

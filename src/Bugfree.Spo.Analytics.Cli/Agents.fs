@@ -65,15 +65,20 @@ let visitor = Agent<VisitorMessages>.Start (fun inbox ->
 
             if length >= (settings.VisitorAgent.CommitThreshold) then
                 logger.Post (Message (sprintf "About to persist %d messages" length))
-                match Database.save (settings.DatabaseConnectionString) (List.rev visits') with
+                let mostRecentFirst = List.rev visits'
+                match Database.save (settings.DatabaseConnectionString) mostRecentFirst with
                 | Choice1Of2 rows -> 
                     logger.Post (Message (sprintf "Persisted %d messages as %d unique visits" length rows))
                     return! messageLoop settings []
                 | Choice2Of2 exn -> 
-                    logger.Post (Message (sprintf "Exception occurred: %s" exn.Message))
+                    logger.Post (Message (sprintf "Exception occurred: %s %s %A" exn.Message exn.StackTrace (mostRecentFirst |> List.head)))
                     // Assume intermittend database failure and retain visits, causing
-                    // another save attempt on next the message arrival because the
-                    // agent queue length is still >= CommitThreshold.
+                    // another save attempt on the next message arrival because the queue
+                    // length is still >= CommitThreshold. In case the failure is more 
+                    // permanent, queue processing is unable to move beyond the failing
+                    // message. If this turns out to be an issue, we should introduce a
+                    // dead letter queue or drop the faulting message after a number of 
+                    // retries.
                     return! messageLoop settings visits'
             else
                 return! messageLoop settings visits'
