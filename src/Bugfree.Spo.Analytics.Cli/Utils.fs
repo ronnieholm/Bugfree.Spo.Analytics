@@ -12,5 +12,3 @@ let memoize fn =
             let result = fn x
             cache.[x] <- result
             result
-
-
