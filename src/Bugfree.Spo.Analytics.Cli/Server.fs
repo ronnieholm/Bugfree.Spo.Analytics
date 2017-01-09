@@ -118,6 +118,23 @@ let getInternalExternalIPOriginVisits (request: HttpRequest) =
     |> serializeToJson
     |> OK >=> Writers.setMimeType "application/json; charset=utf-8"
 
+let getPageLoadFrequencyInDateRange (request: HttpRequest) =
+    match request.queryParam "from" with
+    | Choice1Of2 t -> 
+        match request.queryParam "to" with
+        | Choice1Of2 u -> 
+            match request.queryParam "lowerBoundMilliseconds" with
+            | Choice1Of2 v ->
+                match request.queryParam "upperBoundMilliseconds" with
+                | Choice1Of2 w ->
+                    Reports.generatePageLoadFrequencyInDateRange (DateTime.Parse(t)) (DateTime.Parse(u)) (Int32.Parse(v)) (Int32.Parse(w))
+                    |> serializeToJson
+                    |> OK >=> Writers.setMimeType "application/json; charset=utf-8"
+                | Choice2Of2 _ -> BAD_REQUEST "Missing upperBoundMilliseconds"
+            | Choice2Of2 _ -> BAD_REQUEST "Missing lowerBoundMilliseconds"            
+        | Choice2Of2 _ -> BAD_REQUEST "Missing to"
+    | Choice2Of2 _ -> BAD_REQUEST "Missing from"
+
 let getLogRequest (request: HttpRequest) =
     (Agents.logger.PostAndReply LoggerMessage.Retrieve)
     |> Array.reduce (fun acc cur -> acc + "\r\n" + cur)
@@ -145,6 +162,7 @@ let app staticFilesPath : WebPart =
         path "/" >=> browseFile staticFileRoot "index.html"
         GET >=> path "/api/visitorByVisitorCountInDateRange" >=> request getVisitorByVisitorCountInDateRange
         GET >=> path "/api/internalExternalIPOriginVisitsInDateRange" >=> request getInternalExternalIPOriginVisits
+        GET >=> path "/api/pageLoadFrequencyInDateRange" >=> request getPageLoadFrequencyInDateRange
         path "/log" >=> request getLogRequest
         browse staticFileRoot
         RequestErrors.NOT_FOUND "404"

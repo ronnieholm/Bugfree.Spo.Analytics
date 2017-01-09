@@ -48,6 +48,14 @@ type InternalExternalIPOriginVisits =
       Internal: int
       External: int }
 
+type PageLoadFrequencyVisits =
+    { From: DateTime
+      To: DateTime
+      lowerBoundMilliseconds: int
+      upperBoundMilliseconds: int
+      Internal: int
+      External: int }    
+
 module Repository =
     let toInClauseList (ips: string[]) =
         ips         
@@ -104,7 +112,51 @@ module Repository =
         command.Parameters.AddWithValue("@fromDate", fromDate) |> ignore
         command.Parameters.AddWithValue("@toDate", toDate) |> ignore
         connection.Open()
-        command.ExecuteScalar() :?> int    
+        command.ExecuteScalar() :?> int
+
+    let getInsidePageLoadFrequencyInDateRange (fromDate: DateTime) (toDate: DateTime) (lowerBoundMilliseconds: int) (upperBoundMilliseconds: int): int =
+        let sql = 
+            sprintf 
+                "select count(*) Visits
+                 from Visits v with (nolock), IPs i with (nolock)
+                 where PageLoadTime is not null               
+                 and PageLoadTime >= @lowerBoundMilliseconds
+                 and PageLoadTime < @upperBoundMilliseconds
+                 and v.Timestamp >= @fromDate
+                 and v.Timestamp < @toDate              
+                 and i.IP in (%s)
+                 and v.IPId = i.Id" (reports.CompanyPublicIPs |> toInClauseList)
+        
+        use connection = new SqlConnection(settings.DatabaseConnectionString)
+        use command = new SqlCommand(sql, connection)
+        command.Parameters.AddWithValue("@lowerBoundMilliseconds", lowerBoundMilliseconds) |> ignore
+        command.Parameters.AddWithValue("@upperBoundMilliseconds", upperBoundMilliseconds) |> ignore
+        command.Parameters.AddWithValue("@fromDate", fromDate) |> ignore
+        command.Parameters.AddWithValue("@toDate", toDate) |> ignore
+        connection.Open()
+        command.ExecuteScalar() :?> int
+
+    let getOutsidePageLoadFrequencyInDateRange (fromDate: DateTime) (toDate: DateTime) (lowerBoundMilliseconds: int) (upperBoundMilliseconds: int): int =
+        let sql = 
+            sprintf 
+                "select count(*) Visits
+                 from Visits v with (nolock), IPs i with (nolock)
+                 where PageLoadTime is not null               
+                 and PageLoadTime >= @lowerBoundMilliseconds
+                 and PageLoadTime < @upperBoundMilliseconds
+                 and v.Timestamp >= @fromDate
+                 and v.Timestamp < @toDate              
+                 and i.IP not in (%s)
+                 and v.IPId = i.Id" (reports.CompanyPublicIPs |> toInClauseList)
+        
+        use connection = new SqlConnection(settings.DatabaseConnectionString)
+        use command = new SqlCommand(sql, connection)
+        command.Parameters.AddWithValue("@lowerBoundMilliseconds", lowerBoundMilliseconds) |> ignore
+        command.Parameters.AddWithValue("@upperBoundMilliseconds", upperBoundMilliseconds) |> ignore
+        command.Parameters.AddWithValue("@fromDate", fromDate) |> ignore
+        command.Parameters.AddWithValue("@toDate", toDate) |> ignore
+        connection.Open()
+        command.ExecuteScalar() :?> int
 
 let (|OnPremise|External|InCloud|Other|) (loginName: string) =
     if Regex(sprintf "@%s$" reports.OnPremiseDomain).IsMatch(loginName) then OnPremise
@@ -137,7 +189,12 @@ let generateVisitorsByVisitorCount (from: DateTime) (toX: DateTime) =
 
     { From = from; To = toX; UniqueUserCountInPeriod = uniqueUserCounts; VisitCountInPeriod = visitCounts }
 
-let generateInternalExternalIPOriginVisits (from: DateTime) (toX: DateTime) =
+let generatePageLoadFrequencyInDateRange (from: DateTime) (toX: DateTime) (lowerBoundMilliseconds: int) (upperBoundMilliseconds: int): PageLoadFrequencyVisits =
+    let inside = Repository.getInsidePageLoadFrequencyInDateRange from toX lowerBoundMilliseconds upperBoundMilliseconds
+    let outside = Repository.getOutsidePageLoadFrequencyInDateRange from toX lowerBoundMilliseconds upperBoundMilliseconds
+    { From = from; To = toX; lowerBoundMilliseconds = lowerBoundMilliseconds; upperBoundMilliseconds = upperBoundMilliseconds; Internal = inside; External = outside }
+
+let generateInternalExternalIPOriginVisits (from: DateTime) (toX: DateTime): InternalExternalIPOriginVisits =
     let inside = Repository.getInsideVisitCountInDateRange from toX
     let outside = Repository.getOutsideVisitCountInDateRange from toX
     { From = from; To = toX; Internal = inside; External = outside }
