@@ -96,10 +96,12 @@ let getOrCreateSiteCollection (c: SqlConnection) (t: SqlTransaction) (siteCollec
     let getSiteCollection = new GetSiteCollection(c, t)    
     let InsertSiteCollectionUrl = new InsertSiteCollectionUrl(c, t)
 
-    // Does url match site collection under sites, teams, or My Site pseudo site collection
-    // e.g., https://<tenant>.sharepoint.com/sites/product, https://<tenant>.sharepoint.com/teams/hr 
-    // or https://<tenamt>-my.sharepoint.com/default.aspx 
-    let re = Regex("^(?<url>https://.+?/(sites|teams)/.+?)/|(?<url>https://.+?-my.+?)/")
+    // Parse url and make sure it matches a site collection under sites, teams, or My Site,
+    // e.g., https://<tenant>.sharepoint.com/sites/product, https://<tenant>.sharepoint.com/teams/hr, 
+    // or https://<tenamt>-my.sharepoint.com. For those site collections, and without publishing 
+    // features activated, their Urls are followed by additional elements. For site collections
+    // with publishing features enabled the site collection Url can stand on it own.
+    let re = Regex("^(?<url>https://.+?/(sites|teams)/.+?)(/|$)|(?<url>https://.+?-my.+?)/")
     let m = re.Match(siteCollectionUrl.ToLower())
 
     let url =
@@ -126,7 +128,7 @@ let getOrCreateSiteCollection (c: SqlConnection) (t: SqlTransaction) (siteCollec
             | None -> failwith "Insertion of SiteCollectionUrl must return new row id"
         | 1 -> siteCollections |> Seq.exactlyOne
         | _ -> failwithf "Database inconsistency detected. SiteCollectionUrl '%s' must be unique" siteCollectionUrl
-    | None -> failwith "Url "
+    | None -> failwith (sprintf "Unable to extract site collection url from %s" siteCollectionUrl)
 
 let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
     use connection = new SqlConnection(runtimeConnectionString)
@@ -148,6 +150,8 @@ let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
                 match candidates |> Seq.length with
                 // No previous record of visit in database                
                 | 0 -> 
+                    // todo: if a visit causes this message to fail (such as with invalid url when calling getOrCreateSiteCollection'), 
+                    // move message to dead letter queue (special entry in log file) or it'll forever block message processing.
                     let siteCollectionId = getOrCreateSiteCollection' v.Url
                     let loginNameId = getOrCreateLoginName' v.LoginName
                     let ipId = getOrCreateIP' (v.IP.ToString())
