@@ -7,7 +7,8 @@ type Visit =
     { CorrelationId: Guid
       Timestamp: DateTime
       LoginName: string
-      Url: string
+      SiteCollectionUrl: string
+      VisitUrl: string
       PageLoadTime: int option
       IP: IPAddress
       // Some if client identified itself, otherwise None

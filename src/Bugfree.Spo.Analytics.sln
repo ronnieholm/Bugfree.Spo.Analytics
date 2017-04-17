@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{6F89163B-A8B8-4172-A9F3-97AAD629E32A}"
 	ProjectSection(SolutionItems) = preProject
@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bugfree.Spo.Analytics.Cli", "Bugfree.Spo.Analytics.Cli\Bugfree.Spo.Analytics.Cli.fsproj", "{B3BC8008-43DD-4CE6-989F-30E874993A53}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bugfree.Spo.Analytics.Cli.Tests", "Bugfree.Spo.Analytics.Cli.Tests\Bugfree.Spo.Analytics.Cli.Tests.fsproj", "{D864D069-EA4E-4F1C-8D07-A754515284FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{B3BC8008-43DD-4CE6-989F-30E874993A53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3BC8008-43DD-4CE6-989F-30E874993A53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3BC8008-43DD-4CE6-989F-30E874993A53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D864D069-EA4E-4F1C-8D07-A754515284FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D864D069-EA4E-4F1C-8D07-A754515284FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D864D069-EA4E-4F1C-8D07-A754515284FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D864D069-EA4E-4F1C-8D07-A754515284FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

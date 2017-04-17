@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Bugfree.Spo.Analytics 1.2.0 (2017-04-17)
+
+* Updated documentation with build prerequisites
+* Updated build script to use LocalDb 2016 and Visual Studio 2017 Professional
+* Implement more complete Url parser for better visit Url inspection and filtering ([#5](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/5))
+
 ## Bugfree.Spo.Analytics 1.1.0 (2016-11-06)
 
 * Added log viewing endpoint for easier debugging

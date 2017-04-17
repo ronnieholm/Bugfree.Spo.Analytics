@@ -15,6 +15,8 @@ open Suave.Logging
 open Suave.Writers
 open Agents
 open Reports
+open UrlParsers
+open UrlParsers.SpoUrlParser
 
 let [<Literal>] postOnReadyExample =
     """{
@@ -39,11 +41,27 @@ let getUserAgent (request: HttpRequest) =
     | Choice1Of2 ua -> Some ua
     | Choice2Of2 _ -> None
 
-let callOriginatesFromSharePoint (url: string) =
-    // In case a user saves a page containing the JavaScript callback to an MHT file, 
-    // opening the saved page for offline viewing triggers calls to our endpoints. In
-    // that case, the page URL starts with file://. We filter our such requests.
-    url.StartsWith("https://")
+let filterVisitorUrl (url: string) =
+    match SpoUrlParser.parse url with
+    | { Scheme = Some Https; Subdomain = Some sd; Domain = Some d; ManagedPath = Some mp; SiteCollection = Some sc; Rest = _ } as r ->
+        if sd.Contains("-") then None else r.ComputeSiteCollectionUrl()
+    | { Scheme = Some Https; Subdomain = Some sd; Domain = Some d; ManagedPath = None; SiteCollection = None; Rest = rest } as r ->
+        // Visit on tenant site collection.
+        // It makes little sense to record visits to https://<tenant>-my/sharepoint.com because
+        // it redirects to the user's actual mysite on which we don't record visits. Similarly, 
+        // little value is gained from recording visits on application webs such as 
+        // https://bugfree-36413df1927c26.sharepoint.com. Appearently this gets recorded as part
+        // of redirection similar to the mysite.
+        if sd.Contains("-") then None else r.ComputeSiteCollectionUrl()
+    | { Scheme = Some Https; Subdomain = Some sd; Domain = Some d; ManagedPath = None; SiteCollection = Some sc; Rest = _ } as r ->
+        // Visists on search site collection
+        if sd.Contains("-") || sc <> "search" then None else r.ComputeSiteCollectionUrl()
+    | _ ->
+        // Ending up here indicates a Url which couldn't be parsed. The Url shouldn't 
+        // be in the database in the first place. It's likely a left over from a 
+        // previous parser implementation in which case it the visit should be deleted 
+        // or migrated.
+        None
 
 let getXForwardedFor (request: HttpRequest) =
     // Using the HttpPlatformHandler and running in Azure, Azure's load balancer/ 
@@ -69,33 +87,41 @@ let getXForwardedFor (request: HttpRequest) =
 
 let postOnReady (request: HttpRequest) =
     let json = PostOnReadyJson.Parse(Encoding.UTF8.GetString(request.rawForm))
-    if callOriginatesFromSharePoint json.Url then
+    let visitUrl = json.Url.ToLower()
+    match filterVisitorUrl visitUrl with
+    | Some sc ->
         Agents.visitor.Post (Visit {
             CorrelationId = json.CorrelationId
             Timestamp = DateTime.UtcNow
             LoginName = json.LoginName
-            Url = json.Url
+            SiteCollectionUrl = sc
+            VisitUrl = visitUrl
             PageLoadTime = None
             IP = match getXForwardedFor request with Some ip -> ip | None -> failwith "Expected IP address"
             UserAgent = getUserAgent request })
         OK "processedOnReady"
-    else
-        OK "callNotOriginatesFromSharePoint"
+    | None -> 
+        Agents.logger.Post (Message(sprintf "Skipping visit: '%s'" visitUrl))
+        OK "invalidVisitUrl"
 
 let postOnLoad (request: HttpRequest) =
     let json = PostOnLoadJson.Parse(Encoding.UTF8.GetString(request.rawForm))
-    if callOriginatesFromSharePoint json.Url then
+    let visitUrl = json.Url.ToLower()
+    match filterVisitorUrl visitUrl with
+    | Some sc ->
         Agents.visitor.Post (Visit {
             CorrelationId = json.CorrelationId
             Timestamp = DateTime.UtcNow
             LoginName = json.LoginName
-            Url = json.Url
+            SiteCollectionUrl = sc
+            VisitUrl = visitUrl
             PageLoadTime = Some json.PageLoadTime
             IP = match getXForwardedFor request with Some ip -> ip | None -> failwith "Expected IP address"
             UserAgent = getUserAgent request })
         OK "processedOnLoad"
-    else
-        OK "callNotOriginatesFromSharePoint"
+    | None -> 
+        Agents.logger.Post (Message(sprintf "Skipping visit: '%s'" visitUrl))
+        OK "invalidVisitUrl"
 
 let serializeToJson o =
     let jsonSerializerSettings = Newtonsoft.Json.JsonSerializerSettings()

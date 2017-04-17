@@ -48,8 +48,8 @@ $create_db_sql = @"
 $schema = [System.IO.File]::ReadAllText("$($web_base)\schema.sql")
 $create_db_sql = $create_db_sql + $schema
 $create_db_sql | Out-File $createdb
-&$sqlcmd -S "(localdb)\v11.0" -i $createdb
-&$sqlcmd -S "(localdb)\v11.0" -i $detachdb
+&$sqlcmd -S "(localdb)\." -i $createdb
+&$sqlcmd -S "(localdb)\." -i $detachdb
 
-$msbuild = "C:\Program Files (x86)\MSBuild\14.0\bin\amd64\msbuild.exe"
+$msbuild = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\amd64\msbuild.exe"
 &$msbuild "$($base)\src\Bugfree.Spo.Analytics.sln"

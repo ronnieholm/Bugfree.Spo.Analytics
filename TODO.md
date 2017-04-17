@@ -1,5 +1,11 @@
 # TODO
 
+- Canonicalize Urls by making them lower case and Url encoded. Currently only site collection name is canonicalized. 
+  Url encoding handles upper and lower case, so entire Url can be lower cased for easier searching. SharePoint seems 
+  to only Url encode site collecition name. To determine if Url is already encoded, so it doesn't get double encoded, 
+  decode Url and compare to original.
+- While æ, ø, å in site collections names gets Url encoded, the same isn't true for the rest of the URL. The browser 
+  may/will encode a space as %20 before sending the request, but æ, ø, å in rest remains.
 - Collector.js: add namespacing and convert to TypeScript
 - Collector.js: switch to retrieving the current user via the REST API and with caching enabled as shown [here](https://github.com/OfficeDev/PnP/blob/master/Samples/Core.JavaScript/Core.JavaScript.CDN/js/pnp-core.js#L193)
 - Enable running web server without Application Insight

@@ -29,7 +29,7 @@ type InsertUserAgent = SqlCommandProvider<"
     insert into UserAgents (UserAgent) values (@userAgent)
     select scope_identity() Id", compileTimeConnectionString>
 
-// the type provider doesn't directly support inserting into possible null columns like 
+// The type provider doesn't directly support inserting into possible null columns like 
 // pageLoadTime and userAgentId. Instead we would have to create types for InsertWithPageLoadTime
 // and InsertWithoutPageLoadTime, and similarly for UserAgent. To handle every permutation we'd
 // require four insert statements and similar switching logic at the call site. We therefore
@@ -62,9 +62,9 @@ let getOrCreateLoginName (c: SqlConnection) (t: SqlTransaction) (loginName: stri
         | Some x -> x |> int
         | None -> failwith "Insertion of LoginName must return new row id"
     | 1 -> loginNames |> Seq.exactlyOne
-    | _ -> failwithf "Database inconsistency detected. LoginName '%s' must be unique" loginName
+    | _ as times -> failwithf "Database inconsistency detected. LoginName '%s' exists %d times" loginName times
 
-let getOrCreateIP (c: SqlConnection) (t: SqlTransaction) ip =
+let getOrCreateIP (c: SqlConnection) (t: SqlTransaction) (ip: string) =
     let getIP = new GetIP(c, t)
     let insertIP = new InsertIP(c, t)
     let ips = getIP.Execute(ip) |> Seq.toArray
@@ -76,9 +76,9 @@ let getOrCreateIP (c: SqlConnection) (t: SqlTransaction) ip =
         | Some x -> x |> int
         | None -> failwith "Insertion of IP must return new row id"
     | 1 -> ips |> Seq.exactlyOne
-    | _ -> failwithf "Database inconsistency detected. IP %s must be unique" ip
+    | _ as times -> failwithf "Database inconsistency detected. IP %s exists %d times" ip times
 
-let getOrCreateUserAgent (c: SqlConnection) (t: SqlTransaction) userAgent =
+let getOrCreateUserAgent (c: SqlConnection) (t: SqlTransaction) (userAgent: string) =
     let getUserAgent = new GetUserAgent(c, t)
     let insertUserAgent = new InsertUserAgent(c, t)
     let userAgents = getUserAgent.Execute(userAgent) |> Seq.toArray
@@ -90,45 +90,21 @@ let getOrCreateUserAgent (c: SqlConnection) (t: SqlTransaction) userAgent =
         | Some x -> x |> int
         | None -> failwith "Insertion of UserAgent must return new row id"
     | 1 -> userAgents |> Seq.exactlyOne
-    | _ -> failwithf "Database inconsistency detected. UserAgent '%s' must be unique" userAgent
+    | _ as times -> failwithf "Database inconsistency detected. UserAgent '%s' exists %d times" userAgent times
 
 let getOrCreateSiteCollection (c: SqlConnection) (t: SqlTransaction) (siteCollectionUrl: string) =
     let getSiteCollection = new GetSiteCollection(c, t)    
     let InsertSiteCollectionUrl = new InsertSiteCollectionUrl(c, t)
+    let siteCollections = getSiteCollection.Execute(siteCollectionUrl) |> Seq.toArray
 
-    // Parse url and make sure it matches a site collection under sites, teams, or My Site,
-    // e.g., https://<tenant>.sharepoint.com/sites/product, https://<tenant>.sharepoint.com/teams/hr, 
-    // or https://<tenamt>-my.sharepoint.com. For those site collections, and without publishing 
-    // features activated, their Urls are followed by additional elements. For site collections
-    // with publishing features enabled the site collection Url can stand on it own.
-    let re = Regex("^(?<url>https://.+?/(sites|teams)/.+?)(/|$)|(?<url>https://.+?-my.+?)/")
-    let m = re.Match(siteCollectionUrl.ToLower())
-
-    let url =
-        match m.Success with
-        | true -> Some (m.Groups.["url"].Value)
-        | false ->
-            // Does url match tenant site collection instead, e.g., https://<tenant>.sharepoint.com/default.aspx
-            if not (siteCollectionUrl.Contains("/sites/") || siteCollectionUrl.Contains("/teams/"))
-            then
-                let re2 = Regex("^(?<url>https://.+?)/")
-                let m2 = re2.Match(siteCollectionUrl.ToLower())
-                if m2.Success then Some (m2.Groups.["url"].Value) 
-                else None
-            else None
-
-    match url with
-    | Some u -> 
-        let siteCollections = getSiteCollection.Execute(u) |> Seq.toArray
-        match siteCollections |> Array.length with
-        | 0 -> 
-            let id = InsertSiteCollectionUrl.Execute(u) |> Seq.exactlyOne
-            match id with
-            | Some x -> x |> int
-            | None -> failwith "Insertion of SiteCollectionUrl must return new row id"
-        | 1 -> siteCollections |> Seq.exactlyOne
-        | _ -> failwithf "Database inconsistency detected. SiteCollectionUrl '%s' must be unique" siteCollectionUrl
-    | None -> failwith (sprintf "Unable to extract site collection url from %s" siteCollectionUrl)
+    match siteCollections |> Array.length with
+    | 0 -> 
+        let id = InsertSiteCollectionUrl.Execute(siteCollectionUrl) |> Seq.exactlyOne
+        match id with
+        | Some x -> x |> int
+        | None -> failwith "Insertion of SiteCollectionUrl must return new row id"
+    | 1 -> siteCollections |> Seq.exactlyOne
+    | _ as times -> failwithf "Database inconsistency detected. SiteCollectionUrl '%s' exists %d times" siteCollectionUrl times
 
 let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
     use connection = new SqlConnection(runtimeConnectionString)
@@ -148,11 +124,10 @@ let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
             |> List.fold (fun r v ->
                 let candidates = selectByUniqueId.Execute(v.CorrelationId)
                 match candidates |> Seq.length with
+
                 // No previous record of visit in database                
-                | 0 -> 
-                    // todo: if a visit causes this message to fail (such as with invalid url when calling getOrCreateSiteCollection'), 
-                    // move message to dead letter queue (special entry in log file) or it'll forever block message processing.
-                    let siteCollectionId = getOrCreateSiteCollection' v.Url
+                | 0 ->
+                    let siteCollectionId = getOrCreateSiteCollection' v.SiteCollectionUrl
                     let loginNameId = getOrCreateLoginName' v.LoginName
                     let ipId = getOrCreateIP' (v.IP.ToString())
                     let userAgentId = 
@@ -163,7 +138,7 @@ let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
                     use cmd = new SqlCommand(insertVisitSql, connection, transaction)
                     cmd.Parameters.AddWithValue("@correlationId", v.CorrelationId) |> ignore
                     cmd.Parameters.AddWithValue("@timestamp", v.Timestamp) |> ignore
-                    cmd.Parameters.AddWithValue("@url", v.Url) |> ignore
+                    cmd.Parameters.AddWithValue("@url", v.VisitUrl) |> ignore
 
                     match v.PageLoadTime with
                     | Some t -> cmd.Parameters.AddWithValue("@pageLoadTime", t) |> ignore
@@ -178,23 +153,24 @@ let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
                     | None -> cmd.Parameters.AddWithValue("@userAgentId", DBNull.Value) |> ignore      
 
                     r + cmd.ExecuteNonQuery()
-                // A previous record of visit exists in database
+
+                // A previous record of this visit exists in database
                 | 1 -> 
                     let candidate = candidates |> Seq.head
                     match candidate.PageLoadTime, v.PageLoadTime with
                     | Some _, _ -> 
                         // PageLoadTime is already set, yet we received a request for resetting it
-                        // Either the CorrelationId isn't unique or we're somehow processing the same 
-                        // message more than once. Better ignore request.
+                        // Either the CorrelationId isn't unique or we're processing the same message 
+                        // more than once. Better ignore request.
                         r
                     | None, Some t ->
-                         // PageLoadTime isn't set. The previous message processed must have been the 
-                         // VisitOnReady message without PageLoadTime and now we're processing the
-                         // corresponding VisitOnLoad message. Let's update the existing record.
+                         // PageLoadTime isn't set. A previous message must have been the VisitOnReady 
+                         // message without PageLoadTime and now we're processing the corresponding 
+                         // VisitOnLoad message. Let's update the existing record.
                         r + updateByUniqueId.Execute(t, v.CorrelationId)
                     | _, None ->
                         // Visit being processes doesn't contain PageLoadTime. Are we processing the
-                        // same message twice? Better ignore.
+                        // same message twice? Better ignore request.
                         r                   
                 | _ as times ->
                     let candidate = candidates |> Seq.head
@@ -204,5 +180,7 @@ let save runtimeConnectionString (visits: Domain.Visit list): Choice<int, exn> =
         Choice1Of2 rows
     with
     | e -> 
+        // TODO: if a visit causes this message to fail, move message to dead letter queue (special entry 
+        // in log file) or it'll forever block message processing.
         transaction.Rollback()
         Choice2Of2 e

@@ -9,10 +9,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Bugfree.Spo.Analytics.Suave</RootNamespace>
     <AssemblyName>Bugfree.Spo.Analytics.Cli</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <Name>Bugfree.Spo.Analytics.Cli</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -59,6 +60,7 @@
     <Compile Include="Utils.fs" />
     <Compile Include="AzureConfiguration.fs" />
     <Compile Include="Configuration.fs" />
+    <Compile Include="UrlParsers.fs" />
     <Compile Include="ScriptRegistration.fs" />
     <Compile Include="ApplicationInsights.fs" />
     <Compile Include="Tenant.fs" />
@@ -74,7 +76,7 @@
     <None Include="Schema.sql" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharp.Core, Version=4.4.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="FSharp.Data">
       <HintPath>..\packages\FSharp.Data.2.3.2\lib\net40\FSharp.Data.dll</HintPath>
       <Private>True</Private>

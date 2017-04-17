@@ -137,10 +137,21 @@ and writes). A similar low measure applies to the Azure Service.
 
 ## Compilation
 
-Execute the build.ps1 script within the repository's root folder. For
-use during compilation only, a LocalDB database is created in the
-`src\Bugfree.Spo.Analytics.Cli` folder. Output from the compilation is
-located in `src\Bugfree.Spo.Analytics.Cli\bin\debug`.
+Before compiling the solution, make sure [LocalDb](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+is installed. LocalDb comes as part of SQL Server Express and may be 
+installed without installing any other parts of SQL Server Express. 
+Simply perform a custom installation of SQL Server Express and deselect 
+everything but LocalDb. The build script assumes the version of LocalDb 
+from the SQL Server Express 2016 installation is installed. Older 
+versions will likely require tweaking of the instance name.
+
+For MSBuild, we use Visual Studio 2017's path to msbuild.exe. Without 
+Visual Studio 2017 installed, the path will require adjusting.
+
+With those prerequisites out of the way, execute the build.ps1 script 
+within the repository's root folder. For use during compilation only, 
+a LocalDB database is created within `src\Bugfree.Spo.Analytics.Cli`. 
+Output from the compilation is located in `src\Bugfree.Spo.Analytics.Cli\bin\debug`.
 
 ## Installation
 
