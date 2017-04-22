@@ -114,31 +114,21 @@ module SpoUrlParser =
         let (domain, r2) = parseDomain r1
         let (managedPath, r3) = parseManagedPath r2
 
+        let common = { emptyResult with Scheme = scheme; Subdomain = subdomain; Domain = domain; ManagedPath = managedPath }
         match managedPath with
         | Some _ -> 
             let (siteCollection, r4) = parseSiteCollection r3
-            { Scheme = scheme
-              Subdomain = subdomain
-              Domain = domain
-              ManagedPath = managedPath
-              SiteCollection = siteCollection
-              Rest = if r4.Length > 0 then Some r4 else None }
+            { common with SiteCollection = siteCollection; Rest = if r4.Length > 0 then Some r4 else None }
         | None ->
             // The search and tenant root site collecion https://<tenant>.sharepoint.com should 
             // be the only site collections without a managed path.
             let search = "/search"
             if r3.StartsWith(search) 
             then 
-                { Scheme = scheme
-                  Subdomain = subdomain
-                  Domain = domain
-                  ManagedPath = managedPath
-                  SiteCollection = Some "search"
-                  Rest = if r3.Length > search.Length then Some (r3.Substring(search.Length)) else None }
+                { common with 
+                      SiteCollection = Some "search"
+                      Rest = if r3.Length > search.Length then Some (r3.Substring(search.Length)) else None }
             else
-                { Scheme = scheme
-                  Subdomain = subdomain
-                  Domain = domain
-                  ManagedPath = managedPath
-                  SiteCollection = None
-                  Rest = if r3.Length > 0 then Some r3 else None }
+                { common with
+                      SiteCollection = None
+                      Rest = if r3.Length > 0 then Some r3 else None }

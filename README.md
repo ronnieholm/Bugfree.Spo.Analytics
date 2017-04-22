@@ -1,22 +1,25 @@
 # Bugfree.Spo.Analytics
 
 Bugfree.Spo.Analytics adds non-invasive logging of page visits in
-SharePoint to MS SQL Server. By injecting JavaScript into every page,
-metadata about each visit is send to a web service to be recorded in a
-MS SQL Server database. In the near future, a frontend with a
-dashboard and simple query functionality will be added as well. But
-the main purpose remains on recording visits. Separate tools already
-do querying and graphing well.
+SharePoint to a MS SQL Server database, meaning that you own and 
+control the collected data.
+
+The idea of Bugfree.Spo.Analytics is akin to Google Analytics, except
+that Google Analytics doesn't record the login names of visitors (but
+can be [tweaked to](https://philipwalton.com/articles/the-google-analytics-setup-i-use-on-every-site-i-build)), 
+doesn't allow running custom queries on collected visits, and you 
+don't have control over how the collected data is used.
+
+In the near future, a frontend with a dashboard and simple query 
+functionality will be added as well. But the main purpose remains 
+on recording visits. Separate tools already do querying and graphing 
+well.
 
 Because visits are tracked client-side using JavaScript,
 Bugfree.Spo.Analytics isn't intended for auditing. Rather, its purpose
 is to gather aggregated visitor statistics and answer questions such
 as how many users visited a page, a web, or an entire site collection
 over a period of time.
-
-The idea of Bugfree.Spo.Analytics is akin to Google Analytics, except
-that Google Analytics doesn't record the login names of visitors and
-doesn't allow running custom queries on collected visits.
 
 ## How it works
 
