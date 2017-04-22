@@ -17,6 +17,7 @@ open Agents
 open Reports
 open UrlParsers
 open UrlParsers.SpoUrlParser
+open Utils
 
 let [<Literal>] postOnReadyExample =
     """{
@@ -41,6 +42,11 @@ let getUserAgent (request: HttpRequest) =
     | Choice1Of2 ua -> Some ua
     | Choice2Of2 _ -> None
 
+let getXForwardedForHeader (request: HttpRequest) =
+    match (request.header "x-forwarded-for") with 
+    | Choice1Of2 xff -> Utils.parseOriginatingIPFromXForwardedForHeader xff 
+    | Choice2Of2 _ -> failwith "Missing x-forwarded-for"
+
 let filterVisitorUrl (url: string) =
     match SpoUrlParser.parse url with
     | { Scheme = Some Https; Subdomain = Some sd; Domain = Some d; ManagedPath = Some mp; SiteCollection = Some sc; Rest = _ } as r ->
@@ -50,7 +56,7 @@ let filterVisitorUrl (url: string) =
         // It makes little sense to record visits to https://<tenant>-my/sharepoint.com because
         // it redirects to the user's actual mysite on which we don't record visits. Similarly, 
         // little value is gained from recording visits on application webs such as 
-        // https://bugfree-36413df1927c26.sharepoint.com. Appearently this gets recorded as part
+        // https://<tenant>-36413df1927c26.sharepoint.com. Appearently this gets recorded as part
         // of redirection similar to the mysite.
         if sd.Contains("-") then None else r.ComputeSiteCollectionUrl()
     | { Scheme = Some Https; Subdomain = Some sd; Domain = Some d; ManagedPath = None; SiteCollection = Some sc; Rest = _ } as r ->
@@ -62,28 +68,6 @@ let filterVisitorUrl (url: string) =
         // previous parser implementation in which case it the visit should be deleted 
         // or migrated.
         None
-
-let getXForwardedFor (request: HttpRequest) =
-    // Using the HttpPlatformHandler and running in Azure, Azure's load balancer/ 
-    // reverse proxy adds the x-forwarded-for header to the request containing the 
-    // original client IP and port.
-    match (request.header "x-forwarded-for") with
-    | Choice1Of2 xff -> 
-        // Not sure why the same IP is listed multiple times so we assert the IPs 
-        // (without port number) are the same. That way we can use any IP for 
-        // further processing. The x-forwarded-for contains a string of this format:
-        // let xff = "12.345.678.90:57505, 12.345.678.90, 12.345.678.90:0"
-        let ips = 
-            xff.Split(',')
-            |> Array.map (fun s -> s.Trim())
-            |> Array.map (fun s ->               
-                let lastColon = s.LastIndexOf(':')
-                if lastColon <> -1 then s.Substring(0, lastColon) else s)
-            |> Array.distinct 
-
-        if ips |> Array.length <> 1 then failwithf "x-forwarded-for assumed to contain one unique IP address: %s" xff
-        Some (IPAddress.Parse(ips.[0]))
-    | Choice2Of2 _ -> None
 
 let postOnReady (request: HttpRequest) =
     let json = PostOnReadyJson.Parse(Encoding.UTF8.GetString(request.rawForm))
@@ -97,7 +81,7 @@ let postOnReady (request: HttpRequest) =
             SiteCollectionUrl = sc
             VisitUrl = visitUrl
             PageLoadTime = None
-            IP = match getXForwardedFor request with Some ip -> ip | None -> failwith "Expected IP address"
+            IP = getXForwardedForHeader request |> IPAddress.Parse
             UserAgent = getUserAgent request })
         OK "processedOnReady"
     | None -> 
@@ -116,7 +100,7 @@ let postOnLoad (request: HttpRequest) =
             SiteCollectionUrl = sc
             VisitUrl = visitUrl
             PageLoadTime = Some json.PageLoadTime
-            IP = match getXForwardedFor request with Some ip -> ip | None -> failwith "Expected IP address"
+            IP = getXForwardedForHeader request |> IPAddress.Parse
             UserAgent = getUserAgent request })
         OK "processedOnLoad"
     | None -> 
