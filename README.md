@@ -6,9 +6,10 @@ control the collected data.
 
 The idea of Bugfree.Spo.Analytics is akin to Google Analytics, except
 that Google Analytics doesn't record the login names of visitors (but
-can be [tweaked to](https://philipwalton.com/articles/the-google-analytics-setup-i-use-on-every-site-i-build)), 
-doesn't allow running custom queries on collected visits, and you 
-don't have control over how the collected data is used.
+can be [tweaked](https://philipwalton.com/articles/the-google-analytics-setup-i-use-on-every-site-i-build) 
+to by adding a custom dimension), doesn't easily allow running any 
+query on collected visits, and you don't control how the collected 
+data is used.
 
 In the near future, a frontend with a dashboard and simple query 
 functionality will be added as well. But the main purpose remains 
