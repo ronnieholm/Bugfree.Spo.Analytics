@@ -210,21 +210,28 @@ from Step 5 as value.
 7. Inside the Azure portal, setup app settings by going to Application
 Settings, App Settings and set the following keys:
 
-   7.1. *Reports.InCloudDomain*: with a tenant URL such as
+   7.1 *CommitThreshold*: the maximum number of messages queued before
+       being flushed to the database. A small number means the
+	   application connects to the database more often, but also that 
+	   the database is more up-to-date. For comparison, with about 
+	   30,000 messages per day, setting CommitThreshold to 5 yield a
+	   database load about 1%.
+
+   7.2. *Reports.InCloudDomain*: with a tenant URL such as
         https://bugfree.sharepoint.com, the value of this setting must
         be "bugfree". Users created within Azure Active Directory only
         will have this tenant address as part of their login
         name. This setting allows the classification of users based on
         login name.
 
-   7.2. *Reports.OnPremiseDomain*: the domain of users in the
+   7.3. *Reports.OnPremiseDomain*: the domain of users in the
         on-promise Active Directory synchronized to Azure Active
         Directory. If the mail address of an on-premise user is
         rh@domain.dk, the value of this setting must be
         "domain.dk". This setting allows the classification of users
         based on login name.
 
-   7.3. *Reports.CompanyPublicIPs*: a comma-delimited list of public
+   7.4. *Reports.CompanyPublicIPs*: a comma-delimited list of public
         IP addresses of your organization. For example "1.2.3.4,
         5.6.7.8". Given that the web application runs in Azure,
         traffic from both inside and outside your organization

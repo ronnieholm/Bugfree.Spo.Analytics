@@ -21,6 +21,7 @@ type Settings =
       VisitorAgent: VisitorAgentInfo
       Reports: ReportsInfo }
 
+let getInt s = ConfigurationManager.AppSettings.[s: string] |> int
 let getString s = ConfigurationManager.AppSettings.[s: string]
 let getDateTime s = DateTime.Parse(getString s)
 let getConnectionString s = ConfigurationManager.ConnectionStrings.[s: string].ConnectionString |> string
@@ -35,7 +36,7 @@ let getSettings() =
     let getUrl = getString >> Uri
     { DatabaseConnectionString = getConnectionString "BugfreeSpoAnalytics"
       ApplicationInsights = { InstrumentationKey = getString "ApplicationInsightsInstrumentationKey" }
-      VisitorAgent = { CommitThreshold = 5 }
+      VisitorAgent = { CommitThreshold = getInt "CommitThreshold" }
       Reports = 
         { InCloudDomain = getString "Reports.InCloudDomain"
           OnPremiseDomain = getString "Reports.OnPremiseDomain"

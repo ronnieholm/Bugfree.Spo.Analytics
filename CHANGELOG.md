@@ -4,6 +4,7 @@
 
 * Switched to Argu for command-line parsing ([#7](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/7))
 * Ensure that visits with negative PageLoadTime are ignored ([#1](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/1))
+* Setting through Azure portal CommitThreshold for number of messages in queue before flushing to database ([#3](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/3))
 
 ## Bugfree.Spo.Analytics 1.2.1 (2017-04-22)
 
