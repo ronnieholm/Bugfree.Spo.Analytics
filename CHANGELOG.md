@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Bugfree.Spo.Analytics 1.3.0 (2017-04-30)
+
+* Switch to Argu for command-line parsing ([#7](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/7))
+
 ## Bugfree.Spo.Analytics 1.2.1 (2017-04-22)
 
 * About 1% of x-forwarded-for headers fail to parse due to change in header format ([#6](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/6))

@@ -249,52 +249,53 @@ within a site collection.
 
 Running `Bugfree.Spo.Analytics.Cli.exe --help` provides the following:
 
-    --server <port> <staticFilesLocation>
+    USAGE: Bugfree.Spo.Analytics.Cli.exe [--help] [<subcommand> [<options>]]
+    
+    SUBCOMMANDS:
+    
+        --server <options>    launch web server hosting analytics backend to which SharePoint directs requests.
+        --register-site-collection <options>
+                              register callback script for a single site collection.
+        --register-site-collections <options>
+                              register callback script for all tenant site collections.
+        --unregister-site-collection <options>
+                              unregister callback script for a single site collection.
+        --unregister-site-collections <options>
+                              unregister callback script for all tenant site collections.
+        --verify-site-collections <options>
+                              verify number of callback script all tenant site collections.
 
-      Start the self-hosted web server, usually triggered by the Azure App
-      Service and its use of Azure's httpPlatformHandler.
+        Use 'Bugfree.Spo.Analytics.Cli.exe <subcommand> --help' for additional information.
 
-    --register-site-collection <userName> <password> <siteCollectionUrl> <analytics
-    --unregister-site-collection <userName> <password> <siteCollectionUrl>
+    OPTIONS:
+    
+        --help                display this list of options.
 
-      Enable or disable visitor registration within a site collection.
-
-    --register-site-collections <userName> <password> <tenantName> <analyticsBaseUr
-    --unregister-site-collections <userName> <password> <tenantName>
-
-      Enable or disable visitor registration across all site collections.
-
-    --verify-site-collections <userName> <password> <tenantName>
-
-      Report on the number of visitor registrations with each site
-      collection (0, 1, or error). At most one registration must be present
-      or visits are recorded multiple times. This operation is included for
-      debugging purposes.
-
-    For all operations, the provided user must have at least site collection
-    administrator rights or the particular registration is skipped.
-
+    For all subcommands except --server, the provided user must have at least site
+    collection administrator rights or the operation is skipped for the site.
+    
     Examples (place command on single line)
-
-      Enable visitor registration on a single site collections:
-
-      .\Bugfree.Spo.Analytics.Cli
+    
+      Enable visitor registration within a single site collections:
+    
+      .\Bugfree.Spo.Analytics.Cli.exe
         --register-site-collection
-          rh@bugfree.onmicrosoft.com
-          secretPassword
-          https://bugfree.sharepoint.com/sites/siteCollection
-          https://bugfreespoanalytics.azurewebsites.net
-
-      (Command outputs URLs of site collections as it attempts to enable
-       visitor registration. Errors, such as no access, are displayed as well.)
-
-      Disable visitor registration on all site collections.
-
-      .\Bugfree.Spo.Analytics.Cli
+        --username rh@bugfree.onmicrosoft.com
+        --password secretPassword
+        --site-collection https://bugfree.sharepoint.com/sites/siteCollection
+        --analytics-url https://bugfreespoanalytics.azurewebsites.net
+      
+      Disable visitor registration within all site collections.
+      
+      .\Bugfree.Spo.Analytics.Cli.exe
         --unregister-site-collections
-          rh@bugfree.onmicrosoft.com
-          secretPassword
-          bugfree
+        --username rh@bugfree.onmicrosoft.com
+        --password secretPassword
+        --tenant bugfree
+      
+      Start self-hosted web server on port 8083 and serve public files:
+      
+      .\Bugfree.Spo.Analytics.Cli.exe --server --port 8083 --static-files-location ..\..\public
 
 ## Supported platforms
 
