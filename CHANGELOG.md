@@ -2,7 +2,8 @@
 
 ## Bugfree.Spo.Analytics 1.3.0 (2017-04-30)
 
-* Switch to Argu for command-line parsing ([#7](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/7))
+* Switched to Argu for command-line parsing ([#7](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/7))
+* Ensure that visits with negative PageLoadTime are ignored ([#1](https://github.com/ronnieholm/Bugfree.Spo.Analytics/issues/1))
 
 ## Bugfree.Spo.Analytics 1.2.1 (2017-04-22)
 

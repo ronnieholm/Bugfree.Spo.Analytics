@@ -10,6 +10,7 @@ let simulateBrowserVisit() =
     c.DefaultRequestHeaders.Accept.Clear()
     c.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue("application/json"))
     c.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36")
+    c.DefaultRequestHeaders.Add("x-forwarded-for", "127.0.0.1")
    
     let example =
         """{

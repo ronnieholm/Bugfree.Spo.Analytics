@@ -85,7 +85,7 @@ let postOnReady (request: HttpRequest) =
             UserAgent = getUserAgent request })
         OK "processedOnReady"
     | None -> 
-        Agents.logger.Post (Message(sprintf "Skipping visit: '%s'" visitUrl))
+        Agents.logger.Post (Message(sprintf "Skipping visit '%s'" visitUrl))
         OK "invalidVisitUrl"
 
 let postOnLoad (request: HttpRequest) =
@@ -93,18 +93,27 @@ let postOnLoad (request: HttpRequest) =
     let visitUrl = json.Url.ToLower()
     match filterVisitorUrl visitUrl with
     | Some sc ->
-        Agents.visitor.Post (Visit {
-            CorrelationId = json.CorrelationId
-            Timestamp = DateTime.UtcNow
-            LoginName = json.LoginName
-            SiteCollectionUrl = sc
-            VisitUrl = visitUrl
-            PageLoadTime = Some json.PageLoadTime
-            IP = getXForwardedForHeader request |> IPAddress.Parse
-            UserAgent = getUserAgent request })
-        OK "processedOnLoad"
+        // In one out of 1.8 million requests, the PageLoadTime became negative.
+        // This was likely due to the correlation id not being unique (the GUID
+        // was already in the database). Just to be on the safe side, we make 
+        // sure not to queue such visits. A negative PageLoadTime can 
+        // significantly skew aggregation operations on page load times.
+        if json.PageLoadTime <= 0 then
+            Agents.logger.Post (Message(sprintf "Skipping visit with negative PageLoadTime of '%d" json.PageLoadTime))
+            OK "invalidPageLoadTime"
+        else
+            Agents.visitor.Post (Visit {
+                CorrelationId = json.CorrelationId
+                Timestamp = DateTime.UtcNow
+                LoginName = json.LoginName
+                SiteCollectionUrl = sc
+                VisitUrl = visitUrl
+                PageLoadTime = Some json.PageLoadTime
+                IP = getXForwardedForHeader request |> IPAddress.Parse
+                UserAgent = getUserAgent request })
+            OK "processedOnLoad"
     | None -> 
-        Agents.logger.Post (Message(sprintf "Skipping visit: '%s'" visitUrl))
+        Agents.logger.Post (Message(sprintf "Skipping visit '%s'" visitUrl))
         OK "invalidVisitUrl"
 
 let serializeToJson o =
