@@ -16,7 +16,6 @@ open Suave.Writers
 open Agents
 open Reports
 open UrlParsers
-open UrlParsers.SpoUrlParser
 open Utils
 
 let [<Literal>] postOnReadyExample =
@@ -133,9 +132,15 @@ let getVisitorByVisitorCountInDateRange (request: HttpRequest) =
     | Choice2Of2 _ -> BAD_REQUEST "Missing from"
 
 let getInternalExternalIPOriginVisits (request: HttpRequest) =
-    Reports.generateInternalExternalIPOriginVisits (DateTime(2016, 5, 1)) (DateTime(2016, 11, 4))
-    |> serializeToJson
-    |> OK >=> Writers.setMimeType "application/json; charset=utf-8"
+    match request.queryParam "from" with
+    | Choice1Of2 t -> 
+        match request.queryParam "to" with
+        | Choice1Of2 u -> 
+            Reports.generateInternalExternalIPOriginVisits (DateTime.Parse(t)) (DateTime.Parse(u))
+            |> serializeToJson
+            |> OK >=> Writers.setMimeType "application/json; charset=utf-8"
+        | Choice2Of2 _ -> BAD_REQUEST "Missing to"
+    | Choice2Of2 _ -> BAD_REQUEST "Missing from"
 
 let getPageLoadFrequencyInDateRange (request: HttpRequest) =
     match request.queryParam "from" with

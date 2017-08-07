@@ -1,8 +1,6 @@
 ﻿module Bugfree.Spo.Analytics.Cli.Agents
 
 open System
-open Microsoft.SharePoint.Client
-
 open Domain
 
 // Examples of agent programming:
@@ -43,10 +41,10 @@ let logger = Agent<LoggerMessage>.Start (fun inbox ->
     }
     messageLoop())
 
-type VisitorMessages =
+type VisitorMessage =
     | Visit of Visit
 
-let visitor = Agent<VisitorMessages>.Start (fun inbox ->   
+let visitor = Agent<VisitorMessage>.Start (fun inbox ->   
     let rec messageLoop (settings: Configuration.Settings) visits = async {
         let! message = inbox.Receive()
         
@@ -64,6 +62,8 @@ let visitor = Agent<VisitorMessages>.Start (fun inbox ->
             logger.Post (Message (sprintf "Queued message %d with CorrelationId %s" length (visit.CorrelationId.ToString())))
 
             if length >= (settings.VisitorAgent.CommitThreshold) then
+                try
+
                 logger.Post (Message (sprintf "About to persist %d messages" length))
                 let mostRecentFirst = List.rev visits'
                 match Database.save (settings.DatabaseConnectionString) mostRecentFirst with
@@ -80,6 +80,9 @@ let visitor = Agent<VisitorMessages>.Start (fun inbox ->
                     // dead letter queue or drop the faulting message after a number of 
                     // retries.
                     return! messageLoop settings visits'
+                with
+                | e -> 
+                    logger.Post (Message (sprintf "Exception during message processing: %A" e))
             else
                 return! messageLoop settings visits'
     }

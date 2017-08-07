@@ -58,6 +58,7 @@
     <Compile Include="UrlParserTests.fs" />
     <Content Include="packages.config" />
     <Content Include="App.config" />
+    <Compile Include="ReportsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -69,6 +70,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
     <Reference Include="Unquote">
       <HintPath>..\packages\Unquote.3.2.0\lib\net45\Unquote.dll</HintPath>

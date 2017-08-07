@@ -1,12 +1,9 @@
 ﻿module Bugfree.Spo.Analytics.Cli.ApplicationInsights
 
 open System
-open System.Configuration
-open System.Diagnostics
 open Microsoft.ApplicationInsights
 open Microsoft.ApplicationInsights.DataContracts
 open Microsoft.ApplicationInsights.Extensibility
-open Microsoft.ApplicationInsights.Extensibility.Implementation
 open Suave
 
 // Originally based on https://github.com/isaacabraham/azure-fsharp-helpers

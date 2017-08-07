@@ -16,3 +16,5 @@
 - Fix serving public files locally. Azure App Services relies on Environment.CurrentDirectory + staticFilesPath in Server.fs
 - Make binaries available for download on Github
 - Include https://github.com/OlegZee/Suave.OAuth for O365 authentication
+- Try out Elasticsearch, Logstach, and Kibana for a more advanced and interactive UI
+  http://video.thecamp.dk/elasticsearch-logstach-kibana-af-henrik-lund-kramshoej

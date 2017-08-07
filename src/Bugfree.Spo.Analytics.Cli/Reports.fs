@@ -9,7 +9,6 @@
 open System
 open System.Data.SqlClient
 open System.Text.RegularExpressions
-open FSharp.Data
 
 let settings = Configuration.getSettings()
 let reports = settings.Reports
