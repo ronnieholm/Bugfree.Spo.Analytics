@@ -34,7 +34,7 @@ namespace Bugfree.Spo.Analytics.MemoryDumpProcessor
                 }
 
                 // Enumerating the heap doesn't preserve allocation order. Hence we impose an
-                // order using the visit's timestamp. This allows for each visit inspection.
+                // order using the visit's timestamp for easier inspection.
                 foreach (var v in visits.OrderBy(v => v.Timestamp))
                 {
                     visitor.Post(VisitorMessage.NewVisit(v));
